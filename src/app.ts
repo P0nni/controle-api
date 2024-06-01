@@ -1,10 +1,9 @@
-
 import express from "express";
 import { router } from "./router";
-import  mongoose from "mongoose";
-import bcrypt  from "bcrypt";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import { Jwt } from "jsonwebtoken";
-require("dotenv").config()
+require("dotenv").config();
 
 export class App {
   public server: express.Application;

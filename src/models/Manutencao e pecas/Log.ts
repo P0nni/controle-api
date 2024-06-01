@@ -1,6 +1,5 @@
 import { IToken } from "./User";
-
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 export interface ILog {
   action: string;

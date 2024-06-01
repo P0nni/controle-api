@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import User from "../../models/User";
+import User from "../../../models/Manutencao e pecas/User";
 
 class UserController {
-
   public async create(req: Request, res: Response) {
     const userBody = req.body;
     const createdUser = await User.create(userBody);
@@ -19,7 +18,6 @@ class UserController {
       response: users,
     });
   }
-
 }
 
 export const userController = new UserController();

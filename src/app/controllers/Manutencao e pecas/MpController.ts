@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
-import MaquinaParada, { IMP, ItemMP } from "../../models/MaquinaParada";
-import { IFilter } from "../../models/Filter";
+import MaquinaParada, {
+  IMP,
+  ItemMP,
+} from "../../../models/Manutencao e pecas/MaquinaParada";
+import { IFilter } from "../../../models/Manutencao e pecas/Filter";
 import { ActionLog, loggerController } from "./LoggerController";
 import { authController } from "./AuthController";
-import { IToken } from "../../models/User";
+import { IToken } from "../../../models/Manutencao e pecas/User";
+import { notificationController } from "./NotificationController";
 
 class MpController {
   public async all(req: Request, res: Response) {
@@ -48,12 +52,19 @@ class MpController {
         msg: "Ocorreu  um erro ao atualizar a ficha.",
       });
     }
-    const user = await authController.getUserByToken(req) as IToken;
+    const user = (await authController.getUserByToken(req)) as IToken;
     await loggerController.addLogMp(
       ActionLog.update,
       mpToUpdate,
       mp_updated,
       user
+    );
+
+    await notificationController.new(
+      [mp_updated.info.supervisor, mp_updated.info.soliciting],
+      `Ficha: ${mp_updated.info.form}`,
+      `Nova Atualização por ${user.name}`,
+      `mp/id?=${mp_updated.id}`
     );
     return res.status(200).json({ msg: "Ficha atualizada com sucesso" });
   }

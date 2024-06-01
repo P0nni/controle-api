@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import Log, { ILog } from "../../models/Log";
+import Log, { ILog } from "../../../models/Manutencao e pecas/Log";
 import zlib from "zlib";
-import { IMP } from "../../models/MaquinaParada";
+import { IMP } from "../../../models/Manutencao e pecas/MaquinaParada";
 import { diff } from "deep-diff";
-import { IToken, IUser } from "../../models/User";
+import { IToken, IUser } from "../../../models/Manutencao e pecas/User";
 
 export enum ActionLog {
   update,
@@ -45,8 +45,6 @@ class LoggerController {
     });
     await logEntry.save();
   }
-
-
 }
 export const loggerController = new LoggerController();
 

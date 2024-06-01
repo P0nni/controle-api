@@ -3,6 +3,13 @@ import Log, { ILog } from "./Log";
 import { diff } from "deep-diff";
 import zlib from "zlib";
 
+const counterSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  seq: { type: Number, default: 0 },
+});
+
+const Counter = mongoose.model("Counter", counterSchema);
+
 const ItemMPSchema: Schema = new Schema({
   id: { type: Number, default: 0 },
   form: { type: Number, default: 0 },
@@ -18,8 +25,7 @@ const ItemMPSchema: Schema = new Schema({
       "Aguardando Outro Modulo",
       "Aguardando Transporte",
       "Enviado para compra",
-      "Não Visualizado",
-      "Visualizado",
+      "Feito Desvio",
       "Cancelado",
       "Em andamento",
     ],
@@ -27,14 +33,29 @@ const ItemMPSchema: Schema = new Schema({
   },
 });
 
+ItemMPSchema.pre("save", async function (next) {});
+
 const MPInfoSchema: Schema = new Schema({
   warehouse: { type: String, default: "" },
   module: { type: String, default: "" },
-  form: { type: Number, default: 0 },
+  form: { type: Number, unique: true, immutable: true },
   machine: { type: Number, default: 0 },
   soliciting: { type: String, default: "" },
   supervisor: { type: String, default: "" },
 });
+
+MPInfoSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: "form" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    this.form = counter.seq;
+  }
+  next();
+});
+
 const mpSchema = new Schema<IMP>({
   info: {
     type: MPInfoSchema,
@@ -51,6 +72,12 @@ const mpSchema = new Schema<IMP>({
   updatedAt: {
     type: Date,
     required: false,
+  },
+  status: {
+    type: String,
+    enum: ["Concluido", "Não concluido","Visualizado","Não Visualizado"],
+    required: true,
+    default: "Não Visualizado"
   },
 });
 
@@ -87,6 +114,7 @@ export interface IMP extends Document {
   items: ItemMP[];
   createdAt?: Date;
   updatedAt?: Date;
+  status: string;
 }
 
 //MIDDLE WARES
@@ -101,10 +129,18 @@ mpSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
+mpSchema.pre("save", async function (next) {
+  this.items = this.items.map((item) => {
+    item.form = this.info.form;
+    return item;
+  });
+  next();
+});
+
 export default mongoose.model<IMP>("MaquinaParada", mpSchema);
 
 // Função para comprimir um objeto de log
-function compress(obj : any) {
+function compress(obj: any) {
   const logString = JSON.stringify(obj);
-  return zlib.gzipSync(logString).toString('base64');
+  return zlib.gzipSync(logString).toString("base64");
 }

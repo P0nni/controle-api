@@ -1,7 +1,7 @@
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import User, { IToken, IUser } from "../../models/User";
+import User, { IToken, IUser } from "../../../models/Manutencao e pecas/User";
 
 class AuthController {
   public async register(req: Request, res: Response) {
@@ -20,7 +20,7 @@ class AuthController {
     }
 
     //check exist
-    const userExists = await User.findOne({ email: email });
+    const userExists = await User.findOne({ email: email, name: name });
     if (userExists) {
       return res.status(422).json({ msg: "Por favor, use outro email." });
     }
@@ -80,12 +80,10 @@ class AuthController {
         expiresIn: 5400 /*1:30h*/,
       });
 
-      res
-        .status(200)
-        .json({
-          msg: "Autenticação realizada com sucesso!",
-          token: tokenDecoded,
-        });
+      res.status(200).json({
+        msg: "Autenticação realizada com sucesso!",
+        token: tokenDecoded,
+      });
     } catch (error) {
       console.log(error);
       res.status(500).json({
